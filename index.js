@@ -1,4 +1,5 @@
 const { ApolloServer, gql } = require('apollo-server');
+const PromobitAPI = require('./data_source/Promobit');
 
 // A schema is a collection of type definitions (hence "typeDefs")
 // that together define the "shape" of queries that are executed against
@@ -9,9 +10,9 @@ const typeDefs = gql`
     id: ID!,
     title: String,
     image: String,
-    storeId: Int!,
+    storeDomain: String!,
     store: Store!,
-    userId: Int!
+    userId: Int!,
     user: User!
   }
 
@@ -34,67 +35,53 @@ const typeDefs = gql`
   }
 `;
 
-const offers = [
-    {
-        id: 1,
-        title: 'iPhone 8 Plus 64GB iOS Tela 5,5" 4G Wi-Fi - Apple',
-        image: 'https//i.promobit.com.br/90/879590993515200112444145313567.jpg',
-        storeId: 1,
-        userId: 1
-    },
-    {
-        id: 2,
-        title: 'Processador AMD Ryzen 3 3200G Wraith Stealth',
-        image: 'https//i.promobit.com.br/90/564564112515748727453843649514.jpg',
-        storeId: 2,
-        userId: 2
-    },
-];
-
-const stores = [
-    {
-        id: 1,
-        title: 'Americanas',
-        domain: 'americanas.com.br',
-        image: 'https://www.promobit.com.br/static/p/85/120902604915018501849673458767.png'
-    },
-    {
-        id: 2,
-        title: 'Amazon',
-        domain: 'amazon.com.br',
-        image: 'https://www.promobit.com.br/static/p/85/111540649414954772451589872051.png'
-    },
-];
-
-const users = [
-    {
-        id: 1,
-        name: 'Promobiter'
-    },
-    {
-        id: 2,
-        name: 'Theo'
-    },
-];
-
-  // Resolvers define the technique for fetching the types defined in the schema.
+// Resolvers define the technique for fetching the types defined in the schema.
 const resolvers = {
     Query: {
-        offers: () => offers,
+        offers: async (_source, _args, { dataSources }) => {
+            const offers = await dataSources.promobitAPI.getOffers();
+            return offers.map((offer) => {
+                return {
+                    id: offer.offerId,
+                    title: offer.offerTitle,
+                    image: offer.offerPhoto,
+                    storeDomain: offer.offerFrom,
+                    userId: offer.publisherId,
+                };
+            });
+        },
     },
     Offers: {
-        user: (offer) => {
-            return users.find((user) => user.id === offer.userId);
+        user: async (offer, _, { dataSources }) => {
+            const user = await dataSources.promobitAPI.getUser(offer.userId);
+            return {
+                id: user.id,
+                name: user.username,
+            };
         },
-        store: (offer) => {
-            return stores.find((store) => store.id === offer.storeId);
+        store: async (offer, _, { dataSources }) => {
+            const store = await dataSources.promobitAPI.getStore(offer.storeDomain);
+            return {
+                id: store.id,
+                title: store.pageTitle,
+                domain: store.pageFrom,
+                image: store.pageImage
+            };
         },
     },
   };
 
   // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({
+    typeDefs, 
+    resolvers,
+    dataSources: () => {
+        return {
+            promobitAPI: new PromobitAPI(),
+        };
+    }
+});
 
 // The `listen` method launches a web server.
 server.listen().then(({ url }) => {
