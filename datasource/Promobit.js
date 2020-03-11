@@ -10,6 +10,10 @@ class PromobitAPI extends RESTDataSource {
     return this.get(`offer`);
   }
 
+  async getOffer(slug) {
+    return this.get(`offer/${slug}`);
+  }
+
   async getUser(id) {
     return this.get(`user/${id}`);
   }

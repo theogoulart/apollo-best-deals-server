@@ -2,11 +2,24 @@
 
 module.exports = {
     Query: {
+        offer: async (_source, { slug }, { dataSources }) => {
+            const offer = await dataSources.promobitAPI.getOffer(slug);
+
+            return {
+                id: offer.id,
+                price: `R$ ${offer.offerPrice}`,
+                title: offer.offerTitle,
+                image: offer.offerPhoto,
+                storeDomain: offer.offerFrom,
+                userId: offer.publisherId,
+            };
+        },
         offers: async (_source, _args, { dataSources }) => {
             const offers = await dataSources.promobitAPI.getOffers();
             return offers.map((offer) => {
                 return {
-                    id: offer.offerId,
+                    id: offer.id,
+                    price: `R$ ${offer.offerPrice}`,
                     title: offer.offerTitle,
                     image: offer.offerPhoto,
                     storeDomain: offer.offerFrom,
@@ -15,7 +28,7 @@ module.exports = {
             });
         },
     },
-    Offers: {
+    Offer: {
         user: async (offer, _, { dataSources }) => {
             const user = await dataSources.promobitAPI.getUser(offer.userId);
             return {

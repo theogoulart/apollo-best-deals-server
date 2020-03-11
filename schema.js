@@ -5,31 +5,33 @@ const { gql } = require('apollo-server');
 // your data.
 
 module.exports = gql`
-  type Offers {
-    id: ID!,
-    title: String,
-    image: String,
-    storeDomain: String!,
-    store: Store!,
-    userId: Int!,
+  type Offer {
+    id: ID!
+    title: String
+    image: String
+    price: String
+    storeDomain: String!
+    store: Store!
+    userId: Int!
     user: User!
   }
 
   type Store {
-    id: ID!,
-    title: String,
-    domain: String,
+    id: ID!
+    title: String
+    domain: String
     image: String
   }
 
   type User {
-    id: ID!,
+    id: ID!
     name: String
   }
 
   # The "Query" type is special: it lists all of the available queries that
   # clients can execute, along with the return type for each.
   type Query {
-    offers: [Offers],
+    offer(slug: ID!): Offer
+    offers: [Offer]
   }
 `;
