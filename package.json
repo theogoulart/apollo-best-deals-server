@@ -19,7 +19,7 @@
   "homepage": "https://github.com/theogoulart/apollo-best-deals-server#readme",
   "dependencies": {
     "apollo-datasource-rest": "^0.8.0",
-    "apollo-server": "^2.11.0",
+    "apollo-server": "^2.14.2",
     "graphql": "^14.6.0"
   }
 }
